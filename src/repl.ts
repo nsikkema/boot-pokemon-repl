@@ -1,17 +1,16 @@
-import {State} from "./state.js";
+import { State } from "./state.js";
 
-
-export function startREPL(state: State) {
+export async function startREPL(state: State) {
     state.readline.prompt();
 
-    state.readline.on('line', (line: string) => {
-        let words = cleanInput(line);
+    state.readline.on("line", async (input) => {
+        const words = cleanInput(input);
         if (words.length === 0) {
-            state.readline.prompt()
+            state.readline.prompt();
             return;
         }
 
-        const commandName = words[0]
+        const commandName = words[0];
 
         const cmd = state.commands[commandName];
         if (!cmd) {
@@ -23,18 +22,19 @@ export function startREPL(state: State) {
         }
 
         try {
-            cmd.callback(state);
+            await cmd.callback(state);
         } catch (e) {
-            console.log(e);
+            console.log((e as Error).message);
         }
 
-        state.readline.prompt()
-    })
-
+        state.readline.prompt();
+    });
 }
 
 export function cleanInput(input: string): string[] {
-    return input.toLowerCase().trim().split(" ").filter(Boolean);
+    return input
+        .toLowerCase()
+        .trim()
+        .split(" ")
+        .filter((word) => word !== "");
 }
-
-
